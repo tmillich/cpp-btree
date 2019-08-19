@@ -18,7 +18,7 @@ project(cppbtree CXX)
 
 option(build_tests "Build B-tree tests" OFF)
 add_definitions(-std=c++11)
-set(CMAKE_CXX_FLAGS "-g -O2")
+set(CMAKE_CXX_FLAGS "-Wall -g -O2")
 
 # CMake doesn't have a way to pure template library, 
 # add_library(cppbtree btree.h btree_map.h btree_set.h 
@@ -34,7 +34,7 @@ if(build_tests)
   add_executable(btree_test btree_test.cc btree_test_flags.cc)
   add_executable(safe_btree_test safe_btree_test.cc btree_test_flags.cc)
   add_executable(btree_bench btree_bench.cc btree_test_flags.cc)
-  target_link_libraries(btree_test gtest_main gtest gflags)
-  target_link_libraries(safe_btree_test gtest_main gtest gflags)
-  target_link_libraries(btree_bench gflags gtest)
+  target_link_libraries(btree_test gtest_main gtest gflags pthread)
+  target_link_libraries(safe_btree_test gtest_main gtest gflags pthread)
+  target_link_libraries(btree_bench gflags gtest pthread)
 endif()

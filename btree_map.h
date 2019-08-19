@@ -15,12 +15,10 @@
 // A btree_map<> implements the STL unique sorted associative container
 // interface and the pair associative container interface (a.k.a map<>) using a
 // btree. A btree_multimap<> implements the STL multiple sorted associative
-// container interface and the pair associtive container interface (a.k.a
+// container interface and the pair associative container interface (a.k.a
 // multimap<>) using a btree. See btree.h for details of the btree
 // implementation and caveats.
-
-#ifndef UTIL_BTREE_BTREE_MAP_H__
-#define UTIL_BTREE_BTREE_MAP_H__
+#pragma once
 
 #include <algorithm>
 #include <functional>
@@ -41,15 +39,15 @@ template <typename Key, typename Value,
 class btree_map : public btree_map_container<
   btree<btree_map_params<Key, Value, Compare, Alloc, TargetNodeSize> > > {
 
-  typedef btree_map<Key, Value, Compare, Alloc, TargetNodeSize> self_type;
-  typedef btree_map_params<
-    Key, Value, Compare, Alloc, TargetNodeSize> params_type;
-  typedef btree<params_type> btree_type;
-  typedef btree_map_container<btree_type> super_type;
+  using self_type = btree_map<Key, Value, Compare, Alloc, TargetNodeSize>;
+  using params_type = btree_map_params<
+    Key, Value, Compare, Alloc, TargetNodeSize>;
+  using btree_type = btree<params_type>;
+  using super_type = btree_map_container<btree_type>;
 
  public:
-  typedef typename btree_type::key_compare key_compare;
-  typedef typename btree_type::allocator_type allocator_type;
+  using key_compare = typename btree_type::key_compare;
+  using allocator_type = typename btree_type::allocator_type;
 
  public:
   // Default constructor.
@@ -58,10 +56,25 @@ class btree_map : public btree_map_container<
       : super_type(comp, alloc) {
   }
 
-  // Copy constructor.
-  btree_map(const self_type &x)
-      : super_type(x) {
+  btree_map(const allocator_type & alloc)
+      : super_type(alloc) {
   }
+
+  // Copy constructor.
+  btree_map(const self_type &x) = default;
+
+  // Move constructor
+  btree_map(self_type && x) = default;
+
+  btree_map(std::initializer_list<typename btree_type::value_type> l,
+            const key_compare & comp = key_compare(),
+            const allocator_type & alloc = allocator_type())
+      : super_type(l, comp, alloc) {
+  }
+
+  self_type & operator=(const self_type & x) = default;
+
+  self_type & operator=(self_type && x) = default;
 
   // Range constructor.
   template <class InputIterator>
@@ -86,17 +99,17 @@ template <typename Key, typename Value,
 class btree_multimap : public btree_multi_container<
   btree<btree_map_params<Key, Value, Compare, Alloc, TargetNodeSize> > > {
 
-  typedef btree_multimap<Key, Value, Compare, Alloc, TargetNodeSize> self_type;
-  typedef btree_map_params<
-    Key, Value, Compare, Alloc, TargetNodeSize> params_type;
-  typedef btree<params_type> btree_type;
-  typedef btree_multi_container<btree_type> super_type;
+  using self_type = btree_multimap<Key, Value, Compare, Alloc, TargetNodeSize>;
+  using params_type = btree_map_params<
+    Key, Value, Compare, Alloc, TargetNodeSize>;
+  using btree_type = btree<params_type>;
+  using super_type = btree_multi_container<btree_type>;
 
  public:
-  typedef typename btree_type::key_compare key_compare;
-  typedef typename btree_type::allocator_type allocator_type;
-  typedef typename btree_type::data_type data_type;
-  typedef typename btree_type::mapped_type mapped_type;
+  using key_compare = typename btree_type::key_compare;
+  using allocator_type = typename btree_type::allocator_type;
+  using data_type = typename btree_type::data_type;
+  using mapped_type = typename btree_type::mapped_type;
 
  public:
   // Default constructor.
@@ -106,9 +119,10 @@ class btree_multimap : public btree_multi_container<
   }
 
   // Copy constructor.
-  btree_multimap(const self_type &x)
-      : super_type(x) {
-  }
+  btree_multimap(const self_type &x) = default;
+
+  // Move constructor
+  btree_multimap(self_type && x) = default;
 
   // Range constructor.
   template <class InputIterator>
@@ -117,6 +131,15 @@ class btree_multimap : public btree_multi_container<
                  const allocator_type &alloc = allocator_type())
       : super_type(b, e, comp, alloc) {
   }
+
+  btree_multimap(std::initializer_list<typename btree_type::value_type> l,
+            const key_compare & comp = key_compare(),
+            const allocator_type & alloc = allocator_type())
+      : super_type(l, comp, alloc) {
+  }
+
+  self_type & operator=(const self_type & x) = default;
+  self_type & operator=(self_type && x) = default;
 };
 
 template <typename K, typename V, typename C, typename A, int N>
@@ -126,5 +149,3 @@ inline void swap(btree_multimap<K, V, C, A, N> &x,
 }
 
 } // namespace btree
-
-#endif  // UTIL_BTREE_BTREE_MAP_H__

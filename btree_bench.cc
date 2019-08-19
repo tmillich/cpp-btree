@@ -23,6 +23,7 @@
 #include <type_traits>
 #include <vector>
 
+#include "std_add.h"
 #include "gflags/gflags.h"
 #include "btree_map.h"
 #include "btree_set.h"
@@ -49,7 +50,7 @@ namespace btree {
 namespace {
 
 struct RandGen {
-  typedef ptrdiff_t result_type;
+  using result_type = ptrdiff_t;
   RandGen(result_type seed) {
     srand(seed);
   }
@@ -77,7 +78,7 @@ BenchmarkRun *current_benchmark;
 
 int64_t get_micros () {
   timeval tv;
-  gettimeofday(&tv, NULL);
+  gettimeofday(&tv, nullptr);
   return tv.tv_sec * 1000000 + tv.tv_usec;
 }
 
@@ -131,7 +132,7 @@ void BenchmarkRun::Reset() {
 }
 
 void BenchmarkRun::Run() {
-  assert(current_benchmark == NULL);
+  assert(current_benchmark == nullptr);
   current_benchmark = this;
   int iters = FLAGS_benchmark_min_iters;
   for (;;) {
@@ -152,20 +153,20 @@ void BenchmarkRun::Run() {
   }
   std::cout << benchmark_name << "\t"
 	    << accum_micros * 1000 / iters << "\t"
-	    << iters;
-  current_benchmark = NULL;
+	    << iters << std::endl;
+  current_benchmark = nullptr;
 }
 
 // Used to avoid compiler optimizations for these benchmarks.
 template <typename T>
 void sink(const T& t0) {
-  volatile T t = t0;
+  __attribute__((unused)) volatile T t = t0;
 }
 
 // Benchmark insertion of values into a container.
 template <typename T>
 void BM_Insert(int n) {
-  typedef typename std::remove_const<typename T::value_type>::type V;
+  using V = typename std::remove_const<typename T::value_type>::type;
   typename KeyOfValue<typename T::key_type, V>::type key_of_value;
 
   // Disable timing while we perform some initialization.
@@ -173,7 +174,7 @@ void BM_Insert(int n) {
 
   T container;
   vector<V> values = GenerateValues<V>(FLAGS_benchmark_values);
-  for (int i = 0; i < values.size(); i++) {
+  for (size_t i = 0; i < values.size(); i++) {
     container.insert(values[i]);
   }
 
@@ -202,7 +203,7 @@ void BM_Insert(int n) {
 // Benchmark lookup of values in a container.
 template <typename T>
 void BM_Lookup(int n) {
-  typedef typename std::remove_const<typename T::value_type>::type V;
+  using V = typename std::remove_const<typename T::value_type>::type;
   typename KeyOfValue<typename T::key_type, V>::type key_of_value;
 
   // Disable timing while we perform some initialization.
@@ -211,7 +212,7 @@ void BM_Lookup(int n) {
   T container;
   vector<V> values = GenerateValues<V>(FLAGS_benchmark_values);
 
-  for (int i = 0; i < values.size(); i++) {
+  for (size_t i = 0; i < values.size(); i++) {
     container.insert(values[i]);
   }
 
@@ -234,7 +235,7 @@ void BM_Lookup(int n) {
 // yields a full tree.
 template <typename T>
 void BM_FullLookup(int n) {
-  typedef typename std::remove_const<typename T::value_type>::type V;
+  using V = typename std::remove_const<typename T::value_type>::type;
   typename KeyOfValue<typename T::key_type, V>::type key_of_value;
 
   // Disable timing while we perform some initialization.
@@ -245,7 +246,7 @@ void BM_FullLookup(int n) {
   vector<V> sorted(values);
   sort(sorted.begin(), sorted.end());
 
-  for (int i = 0; i < sorted.size(); i++) {
+  for (size_t i = 0; i < sorted.size(); i++) {
     container.insert(sorted[i]);
   }
 
@@ -266,7 +267,7 @@ void BM_FullLookup(int n) {
 // Benchmark deletion of values from a container.
 template <typename T>
 void BM_Delete(int n) {
-  typedef typename std::remove_const<typename T::value_type>::type V;
+  using V = typename std::remove_const<typename T::value_type>::type;
   typename KeyOfValue<typename T::key_type, V>::type key_of_value;
 
   // Disable timing while we perform some initialization.
@@ -274,7 +275,7 @@ void BM_Delete(int n) {
 
   T container;
   vector<V> values = GenerateValues<V>(FLAGS_benchmark_values);
-  for (int i = 0; i < values.size(); i++) {
+  for (size_t i = 0; i < values.size(); i++) {
     container.insert(values[i]);
   }
 
@@ -308,7 +309,7 @@ void BM_Delete(int n) {
 // value constructors.
 template <typename T>
 void BM_QueueAddRem(int n) {
-  typedef typename std::remove_const<typename T::value_type>::type V;
+  using V = typename std::remove_const<typename T::value_type>::type;
   typename KeyOfValue<typename T::key_type, V>::type key_of_value;
 
   // Disable timing while we perform some initialization.
@@ -357,8 +358,7 @@ void BM_QueueAddRem(int n) {
       StartBenchmarkTiming();
     }
 
-    int e = container.erase(key_of_value(g(offset - half + remove_keys[idx])));
-    assert(e == 1);
+    container.erase(key_of_value(g(offset - half + remove_keys[idx])));
     container.insert(g(offset + half + add_keys[idx]));
   }
 
@@ -368,7 +368,7 @@ void BM_QueueAddRem(int n) {
 // Mixed insertion and deletion in the same range using pre-constructed values.
 template <typename T>
 void BM_MixedAddRem(int n) {
-  typedef typename std::remove_const<typename T::value_type>::type V;
+  using V = typename std::remove_const<typename T::value_type>::type;
   typename KeyOfValue<typename T::key_type, V>::type key_of_value;
 
   // Disable timing while we perform some initialization.
@@ -408,8 +408,7 @@ void BM_MixedAddRem(int n) {
       StartBenchmarkTiming();
     }
 
-    int e = container.erase(key_of_value(values[remove_keys[idx]]));
-    assert(e == 1);
+    container.erase(key_of_value(values[remove_keys[idx]]));
     container.insert(values[add_keys[idx]]);
   }
 
@@ -420,7 +419,7 @@ void BM_MixedAddRem(int n) {
 // counts two value constructors.
 template <typename T>
 void BM_Fifo(int n) {
-  typedef typename std::remove_const<typename T::value_type>::type V;
+  using V = typename std::remove_const<typename T::value_type>::type;
 
   // Disable timing while we perform some initialization.
   StopBenchmarkTiming();
@@ -445,7 +444,7 @@ void BM_Fifo(int n) {
 // Iteration (forward) through the tree
 template <typename T>
 void BM_FwdIter(int n) {
-  typedef typename std::remove_const<typename T::value_type>::type V;
+  using V = typename std::remove_const<typename T::value_type>::type;
 
   // Disable timing while we perform some initialization.
   StopBenchmarkTiming();
@@ -478,21 +477,21 @@ void BM_FwdIter(int n) {
   sink(r); // Keep compiler from optimizing away r.
 }
 
-typedef set<int32_t> stl_set_int32;
-typedef set<int64_t> stl_set_int64;
-typedef set<string> stl_set_string;
+using stl_set_int32 = set<int32_t>;
+using stl_set_int64 = set<int64_t>;
+using stl_set_string = set<string>;
 
-typedef map<int32_t, intptr_t> stl_map_int32;
-typedef map<int64_t, intptr_t> stl_map_int64;
-typedef map<string, intptr_t> stl_map_string;
+using stl_map_int32 = map<int32_t, intptr_t>;
+using stl_map_int64 = map<int64_t, intptr_t>;
+using stl_map_string = map<string, intptr_t>;
 
-typedef multiset<int32_t> stl_multiset_int32;
-typedef multiset<int64_t> stl_multiset_int64;
-typedef multiset<string> stl_multiset_string;
+using stl_multiset_int32 = multiset<int32_t>;
+using stl_multiset_int64 = multiset<int64_t>;
+using stl_multiset_string = multiset<string>;
 
-typedef multimap<int32_t, intptr_t> stl_multimap_int32;
-typedef multimap<int64_t, intptr_t> stl_multimap_int64;
-typedef multimap<string, intptr_t> stl_multimap_string;
+using stl_multimap_int32 = multimap<int32_t, intptr_t>;
+using stl_multimap_int64 = multimap<int64_t, intptr_t>;
+using stl_multimap_string = multimap<string, intptr_t>;
 
 #define MY_BENCHMARK_TYPES2(value, name, size)                                \
   typedef btree ## _set<value, less<value>, allocator<value>, size>           \
