@@ -24,8 +24,8 @@
 #include "std_add.h"
 #include "gtest/gtest.h"
 #include "btree_test.h"
-#include "safe_btree_map.h"
-#include "safe_btree_set.h"
+#include "btree/safe_btree_map.h"
+#include "btree/safe_btree_set.h"
 
 class UnsafeArena;
 

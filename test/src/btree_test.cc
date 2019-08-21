@@ -14,8 +14,8 @@
 
 #include "std_add.h"
 #include "gtest/gtest.h"
-#include "btree_map.h"
-#include "btree_set.h"
+#include "btree/btree_map.h"
+#include "btree/btree_set.h"
 #include "btree_test.h"
 
 namespace btree {

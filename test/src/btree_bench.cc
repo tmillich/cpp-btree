@@ -25,8 +25,8 @@
 
 #include "std_add.h"
 #include "gflags/gflags.h"
-#include "btree_map.h"
-#include "btree_set.h"
+#include "btree/btree_map.h"
+#include "btree/btree_set.h"
 #include "btree_test.h"
 
 DEFINE_int32(test_random_seed, 123456789, "Seed for srand()");
