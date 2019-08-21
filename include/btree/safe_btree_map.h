@@ -40,16 +40,15 @@
 namespace btree {
 
 // The safe_btree_map class is needed mainly for its constructors.
-template <typename Key, typename Value,
-          typename Compare = std::less<Key>,
+template <typename Key, typename Value, typename Compare = std::less<Key>,
           typename Alloc = std::allocator<std::pair<const Key, Value> >,
           int TargetNodeSize = 256>
-class safe_btree_map : public btree_map_container<
-  safe_btree<btree_map_params<Key, Value, Compare, Alloc, TargetNodeSize> > > {
-
+class safe_btree_map
+    : public btree_map_container<safe_btree<
+          btree_map_params<Key, Value, Compare, Alloc, TargetNodeSize> > > {
   using self_type = safe_btree_map<Key, Value, Compare, Alloc, TargetNodeSize>;
-  using params_type = btree_map_params<
-    Key, Value, Compare, Alloc, TargetNodeSize>;
+  using params_type =
+      btree_map_params<Key, Value, Compare, Alloc, TargetNodeSize>;
   using btree_type = safe_btree<params_type>;
   using super_type = btree_map_container<btree_type>;
 
@@ -61,32 +60,28 @@ class safe_btree_map : public btree_map_container<
   // Default constructor.
   safe_btree_map(const key_compare &comp = key_compare(),
                  const allocator_type &alloc = allocator_type())
-      : super_type(comp, alloc) {
-  }
+      : super_type(comp, alloc) {}
 
   // Copy constructor.
   safe_btree_map(const self_type &x) = default;
 
-  safe_btree_map(self_type && x) = default;
-
+  safe_btree_map(self_type &&x) = default;
 
   // Range constructor.
   template <class InputIterator>
   safe_btree_map(InputIterator b, InputIterator e,
                  const key_compare &comp = key_compare(),
                  const allocator_type &alloc = allocator_type())
-      : super_type(b, e, comp, alloc) {
-  }
+      : super_type(b, e, comp, alloc) {}
 
   safe_btree_map(std::initializer_list<typename btree_type::value_type> l,
-            const key_compare & comp = key_compare(),
-            const allocator_type & alloc = allocator_type())
-      : super_type(l, comp, alloc) {
-  }
+                 const key_compare &comp = key_compare(),
+                 const allocator_type &alloc = allocator_type())
+      : super_type(l, comp, alloc) {}
 
-  self_type & operator=(const self_type & x) = default;
+  self_type &operator=(const self_type &x) = default;
 
-  self_type & operator=(self_type && x) = default;
+  self_type &operator=(self_type &&x) = default;
 };
 
 template <typename K, typename V, typename C, typename A, int N>
@@ -95,6 +90,6 @@ inline void swap(safe_btree_map<K, V, C, A, N> &x,
   x.swap(y);
 }
 
-} // namespace btree
+}  // namespace btree
 
 #endif  // UTIL_BTREE_SAFE_BTREE_MAP_H__

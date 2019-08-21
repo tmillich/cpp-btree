@@ -2,12 +2,12 @@
 
 #include <algorithm>
 #include <functional>
-#include <type_traits>
 #include <iosfwd>
 #include <map>
 #include <set>
 #include <sstream>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -15,7 +15,7 @@
 namespace std {
 
 template <typename T, typename U>
-ostream& operator<<(ostream &os, const std::pair<T, U> &p) {
+ostream &operator<<(ostream &os, const std::pair<T, U> &p) {
   os << "(" << p.first << "," << p.second << ")";
   return os;
 }
@@ -32,8 +32,8 @@ bool operator==(const std::pair<T, U> &x, const std::pair<V, W> &y) {
 // std::pair.
 template <typename T, typename U>
 struct remove_const<pair<T, U> > {
-  using type = pair<typename remove_const<T>::type,
-               typename remove_const<U>::type>;
+  using type =
+      pair<typename remove_const<T>::type, typename remove_const<U>::type>;
 };
 
-} // namespace std
+}  // namespace std

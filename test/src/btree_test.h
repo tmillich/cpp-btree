@@ -16,18 +16,18 @@
 #include <stdio.h>
 #include <algorithm>
 #include <functional>
-#include <type_traits>
 #include <iosfwd>
 #include <map>
 #include <set>
 #include <sstream>
 #include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
-#include "gtest/gtest.h"
-#include "gflags/gflags.h"
 #include "btree/btree_container.h"
+#include "gflags/gflags.h"
+#include "gtest/gtest.h"
 
 DECLARE_int32(test_values);
 DECLARE_int32(benchmark_values);
@@ -36,12 +36,12 @@ namespace btree {
 
 // Select the first member of a pair.
 template <class _Pair>
-struct select1st : public std::unary_function<_Pair, typename _Pair::first_type> {
-  const typename _Pair::first_type& operator()(const _Pair& __x) const {
+struct select1st
+    : public std::unary_function<_Pair, typename _Pair::first_type> {
+  const typename _Pair::first_type &operator()(const _Pair &__x) const {
     return __x.first;
   }
 };
-
 
 // Utility class to provide an accessor for a key given a value. The default
 // behavior is to treat the value as a pair and return the first element.
@@ -52,7 +52,7 @@ struct KeyOfValue {
 
 template <typename T>
 struct identity {
-  inline const T& operator()(const T& t) const { return t; }
+  inline const T &operator()(const T &t) const { return t; }
 };
 
 // Partial specialization of KeyOfValue class for when the key and value are
@@ -63,25 +63,22 @@ struct KeyOfValue<K, K> {
 };
 
 // Counts the number of occurrences of "c" in a buffer.
-inline ptrdiff_t strcount(const char* buf_begin, const char* buf_end, char c) {
-  if (buf_begin == nullptr)
-    return 0;
-  if (buf_end <= buf_begin)
-    return 0;
+inline ptrdiff_t strcount(const char *buf_begin, const char *buf_end, char c) {
+  if (buf_begin == nullptr) return 0;
+  if (buf_end <= buf_begin) return 0;
   ptrdiff_t num = 0;
-  for (const char* bp = buf_begin; bp != buf_end; bp++) {
-    if (*bp == c)
-      num++;
+  for (const char *bp = buf_begin; bp != buf_end; bp++) {
+    if (*bp == c) num++;
   }
   return num;
 }
 
 // for when the string is not null-terminated.
-inline ptrdiff_t strcount(const char* buf, size_t len, char c) {
+inline ptrdiff_t strcount(const char *buf, size_t len, char c) {
   return strcount(buf, buf + len, c);
 }
 
-inline ptrdiff_t strcount(const std::string& buf, char c) {
+inline ptrdiff_t strcount(const std::string &buf, char c) {
   return strcount(buf.c_str(), buf.size(), c);
 }
 
@@ -104,29 +101,20 @@ class base_checker {
 
  public:
   // Default constructor.
-  base_checker()
-      : const_tree_(tree_) {
-  }
+  base_checker() : const_tree_(tree_) {}
   // Copy constructor.
   base_checker(const self_type &x)
-      : tree_(x.tree_),
-        const_tree_(tree_),
-        checker_(x.checker_) {
-  }
+      : tree_(x.tree_), const_tree_(tree_), checker_(x.checker_) {}
 
-  base_checker(self_type && x)
-      : tree_(std::move(x.tree_))
-      , const_tree_(tree_)
-      , checker_(std::move(x.checker_)) {
-  }
+  base_checker(self_type &&x)
+      : tree_(std::move(x.tree_)),
+        const_tree_(tree_),
+        checker_(std::move(x.checker_)) {}
 
   // Range constructor.
   template <typename InputIterator>
   base_checker(InputIterator b, InputIterator e)
-      : tree_(b, e),
-        const_tree_(tree_),
-        checker_(b, e) {
-  }
+      : tree_(b, e), const_tree_(tree_), checker_(b, e) {}
 
   // Iterator routines.
   iterator begin() { return tree_.begin(); }
@@ -140,8 +128,7 @@ class base_checker {
 
   // Helper routines.
   template <typename IterType, typename CheckerIterType>
-  IterType iter_check(
-      IterType tree_iter, CheckerIterType checker_iter) const {
+  IterType iter_check(IterType tree_iter, CheckerIterType checker_iter) const {
     if (tree_iter == tree_.end()) {
       EXPECT_EQ(checker_iter, checker_.end());
     } else {
@@ -150,8 +137,7 @@ class base_checker {
     return tree_iter;
   }
   template <typename IterType, typename CheckerIterType>
-  IterType riter_check(
-      IterType tree_iter, CheckerIterType checker_iter) const {
+  IterType riter_check(IterType tree_iter, CheckerIterType checker_iter) const {
     if (tree_iter == tree_.rend()) {
       EXPECT_EQ(checker_iter, checker_.rend());
     } else {
@@ -161,7 +147,7 @@ class base_checker {
   }
   void value_check(const value_type &x) {
     typename KeyOfValue<typename TreeType::key_type,
-        typename TreeType::value_type>::type key_of_value;
+                        typename TreeType::value_type>::type key_of_value;
     const key_type &key = key_of_value(x);
     EXPECT_EQ(*find(key), x);
     lower_bound(key);
@@ -189,19 +175,19 @@ class base_checker {
   const_iterator upper_bound(const key_type &key) const {
     return iter_check(tree_.upper_bound(key), checker_.upper_bound(key));
   }
-  std::pair<iterator,iterator> equal_range(const key_type &key) {
-    std::pair<typename CheckerType::iterator,
-        typename CheckerType::iterator> checker_res =
-        checker_.equal_range(key);
+  std::pair<iterator, iterator> equal_range(const key_type &key) {
+    std::pair<typename CheckerType::iterator, typename CheckerType::iterator>
+        checker_res = checker_.equal_range(key);
     std::pair<iterator, iterator> tree_res = tree_.equal_range(key);
     iter_check(tree_res.first, checker_res.first);
     iter_check(tree_res.second, checker_res.second);
     return tree_res;
   }
-  std::pair<const_iterator,const_iterator> equal_range(const key_type &key) const {
+  std::pair<const_iterator, const_iterator> equal_range(
+      const key_type &key) const {
     std::pair<typename CheckerType::const_iterator,
-        typename CheckerType::const_iterator> checker_res =
-        checker_.equal_range(key);
+              typename CheckerType::const_iterator>
+        checker_res = checker_.equal_range(key);
     std::pair<const_iterator, const_iterator> tree_res = tree_.equal_range(key);
     iter_check(tree_res.first, checker_res.first);
     iter_check(tree_res.second, checker_res.second);
@@ -220,13 +206,13 @@ class base_checker {
   }
 
   // Assignment operator.
-  self_type& operator=(const self_type &x) {
+  self_type &operator=(const self_type &x) {
     tree_ = x.tree_;
     checker_ = x.checker_;
     return *this;
   }
 
-  self_type& operator=(self_type &&x) {
+  self_type &operator=(self_type &&x) {
     tree_ = std::move(x.tree_);
     checker_ = std::move(x.checker_);
     return *this;
@@ -299,11 +285,9 @@ class base_checker {
     EXPECT_EQ(tree_.size(), checker_.size());
 
     // Move through the forward iterators using increment.
-    typename CheckerType::const_iterator
-        checker_iter(checker_.begin());
+    typename CheckerType::const_iterator checker_iter(checker_.begin());
     const_iterator tree_iter(tree_.begin());
-    for (; tree_iter != tree_.end();
-         ++tree_iter, ++checker_iter) {
+    for (; tree_iter != tree_.end(); ++tree_iter, ++checker_iter) {
       EXPECT_EQ(*tree_iter, *checker_iter);
     }
 
@@ -317,11 +301,10 @@ class base_checker {
     EXPECT_TRUE(checker_iter == checker_.begin());
 
     // Move through the reverse iterators using increment.
-    typename CheckerType::const_reverse_iterator
-        checker_riter(checker_.rbegin());
+    typename CheckerType::const_reverse_iterator checker_riter(
+        checker_.rbegin());
     const_reverse_iterator tree_riter(tree_.rbegin());
-    for (; tree_riter != tree_.rend();
-         ++tree_riter, ++checker_riter) {
+    for (; tree_riter != tree_.rend(); ++tree_riter, ++checker_riter) {
       EXPECT_EQ(*tree_riter, *checker_riter);
     }
 
@@ -336,7 +319,7 @@ class base_checker {
   }
 
   // Access to the underlying btree.
-  const TreeType& tree() const { return tree_; }
+  const TreeType &tree() const { return tree_; }
 
   // Size routines.
   size_type size() const {
@@ -370,7 +353,7 @@ class unique_checker : public base_checker<TreeType, CheckerType> {
   using self_type = unique_checker<TreeType, CheckerType>;
 
  public:
-  using iterator =  typename super_type::iterator;
+  using iterator = typename super_type::iterator;
   using value_type = typename super_type::value_type;
 
  public:
@@ -381,23 +364,21 @@ class unique_checker : public base_checker<TreeType, CheckerType> {
   unique_checker(const self_type &x) = default;
 
   // Move constructor.
-  unique_checker(self_type && x) = default;
+  unique_checker(self_type &&x) = default;
 
   // Range constructor.
   template <class InputIterator>
-  unique_checker(InputIterator b, InputIterator e)
-      : super_type(b, e) {
-  }
+  unique_checker(InputIterator b, InputIterator e) : super_type(b, e) {}
 
-  self_type & operator=(const self_type & x) = default;
-  self_type & operator=(self_type && x) = default;
+  self_type &operator=(const self_type &x) = default;
+  self_type &operator=(self_type &&x) = default;
 
   // Insertion routines.
-  std::pair<iterator,bool> insert(const value_type &x) {
+  std::pair<iterator, bool> insert(const value_type &x) {
     int size = this->tree_.size();
-    std::pair<typename CheckerType::iterator,bool> checker_res =
+    std::pair<typename CheckerType::iterator, bool> checker_res =
         this->checker_.insert(x);
-    std::pair<iterator,bool> tree_res = this->tree_.insert(x);
+    std::pair<iterator, bool> tree_res = this->tree_.insert(x);
     EXPECT_EQ(*tree_res.first, *checker_res.first);
     EXPECT_EQ(tree_res.second, checker_res.second);
     EXPECT_EQ(this->tree_.size(), this->checker_.size());
@@ -406,7 +387,7 @@ class unique_checker : public base_checker<TreeType, CheckerType> {
   }
   iterator insert(iterator position, const value_type &x) {
     int size = this->tree_.size();
-    std::pair<typename CheckerType::iterator,bool> checker_res =
+    std::pair<typename CheckerType::iterator, bool> checker_res =
         this->checker_.insert(x);
     iterator tree_res = this->tree_.insert(position, x);
     EXPECT_EQ(*tree_res, *checker_res.first);
@@ -441,16 +422,14 @@ class multi_checker : public base_checker<TreeType, CheckerType> {
   multi_checker(const self_type &x) = default;
 
   // Move constructor
-  multi_checker(self_type && x) = default;
+  multi_checker(self_type &&x) = default;
 
   // Range constructor.
   template <class InputIterator>
-  multi_checker(InputIterator b, InputIterator e)
-      : super_type(b, e) {
-  }
+  multi_checker(InputIterator b, InputIterator e) : super_type(b, e) {}
 
-  self_type & operator=(const self_type & x) = default;
-  self_type & operator=(self_type && x) = default;
+  self_type &operator=(const self_type &x) = default;
+  self_type &operator=(self_type &&x) = default;
 
   // Insertion routines.
   iterator insert(const value_type &x) {
@@ -479,7 +458,7 @@ class multi_checker : public base_checker<TreeType, CheckerType> {
   }
 };
 
-char* GenerateDigits(char buf[16], int val, int maxval) {
+char *GenerateDigits(char buf[16], int val, int maxval) {
   EXPECT_LE(val, maxval);
   int p = 15;
   buf[p--] = 0;
@@ -494,9 +473,7 @@ char* GenerateDigits(char buf[16], int val, int maxval) {
 template <typename K>
 struct Generator {
   int maxval;
-  Generator(int m)
-      : maxval(m) {
-  }
+  Generator(int m) : maxval(m) {}
   K operator()(int i) const {
     EXPECT_LE(i, maxval);
     return i;
@@ -506,9 +483,7 @@ struct Generator {
 template <>
 struct Generator<std::string> {
   int maxval;
-  Generator(int m)
-      : maxval(m) {
-  }
+  Generator(int m) : maxval(m) {}
   std::string operator()(int i) const {
     char buf[16];
     return GenerateDigits(buf, i, maxval);
@@ -520,22 +495,18 @@ struct Generator<std::pair<T, U> > {
   Generator<typename std::remove_const<T>::type> tgen;
   Generator<typename std::remove_const<U>::type> ugen;
 
-  Generator(int m)
-      : tgen(m),
-        ugen(m) {
-  }
+  Generator(int m) : tgen(m), ugen(m) {}
   std::pair<T, U> operator()(int i) const {
     return std::make_pair(tgen(i), ugen(i));
   }
 };
 
 // Generate values for our tests and benchmarks. Value range is [0, maxval].
-const std::vector<int>& GenerateNumbers(size_t n, int maxval) {
+const std::vector<int> &GenerateNumbers(size_t n, int maxval) {
   static std::vector<int> values;
   static std::set<int> unique_values;
 
   if (values.size() < n) {
-
     for (size_t i = values.size(); i < n; i++) {
       int value;
       do {
@@ -578,14 +549,14 @@ void DoTest(const char *name, T *b, const std::vector<V> &values) {
   // Test insert.
   for (size_t i = 0; i < values.size(); ++i) {
     mutable_b.insert(values[i]);
-    EXPECT_EQ(mutable_b.size(), i+1);
+    EXPECT_EQ(mutable_b.size(), i + 1);
     mutable_b.value_check(values[i]);
   }
   EXPECT_EQ(mutable_b.size(), values.size());
 
   const_b.verify();
-  printf("    %s fullness=%0.2f  overhead=%0.2f  bytes-per-value=%0.2f\n",
-         name, const_b.fullness(), const_b.overhead(),
+  printf("    %s fullness=%0.2f  overhead=%0.2f  bytes-per-value=%0.2f\n", name,
+         const_b.fullness(), const_b.overhead(),
          double(const_b.bytes_used()) / const_b.size());
 
   // Test copy constructor.
@@ -662,7 +633,7 @@ void DoTest(const char *name, T *b, const std::vector<V> &values) {
 
   // Test erase via iterators.
   mutable_b = b_copy;
-  for (auto & v : values) {
+  for (auto &v : values) {
     mutable_b.erase(mutable_b.find(key_of_value(v)));
   }
 
@@ -672,7 +643,7 @@ void DoTest(const char *name, T *b, const std::vector<V> &values) {
   EXPECT_EQ(const_b.size(), 0);
 
   // Test insert with hint.
-  for (auto & v : values) {
+  for (auto &v : values) {
     mutable_b.insert(mutable_b.upper_bound(key_of_value(v)), v);
   }
 
@@ -724,24 +695,23 @@ void DoTest(const char *name, T *b, const std::vector<V> &values) {
   mutable_b.clear();
 
   // test copy
-  for (auto & v : values) {
+  for (auto &v : values) {
     mutable_b.insert(v);
     mutable_b.value_check(v);
   }
   auto copy_b = mutable_b;
-  for (auto & v : values) {
+  for (auto &v : values) {
     copy_b.value_check(v);
   }
 
   // test move constructor
   auto copy_b2(std::move(mutable_b));
-  for (auto & v : values) {
+  for (auto &v : values) {
     copy_b2.value_check(v);
   }
   EXPECT_EQ(mutable_b.size(), 0);
   EXPECT_TRUE(mutable_b.empty());
   mutable_b.clear();
-
 }
 
 template <typename T>
@@ -831,7 +801,7 @@ void BtreeMultiTest() {
   ConstTest<T>();
 
   using V = typename std::remove_const<typename T::value_type>::type;
-  const std::vector<V>& random_values = GenerateValues<V>(FLAGS_test_values);
+  const std::vector<V> &random_values = GenerateValues<V>(FLAGS_test_values);
 
   multi_checker<T, C> container;
 
@@ -849,8 +819,8 @@ void BtreeMultiTest() {
 
   // Test keys in random order w/ duplicates.
   std::vector<V> duplicate_values(random_values);
-  duplicate_values.insert(
-      duplicate_values.end(), random_values.begin(), random_values.end());
+  duplicate_values.insert(duplicate_values.end(), random_values.begin(),
+                          random_values.end());
   DoTest("duplicates:", &container, duplicate_values);
 
   // Test all identical keys.
@@ -869,15 +839,13 @@ class TestAllocator : public Alloc {
   using pointer = typename Alloc::pointer;
   using size_type = typename Alloc::size_type;
 
-  TestAllocator() : bytes_used_(nullptr) { }
-  TestAllocator(int64_t *bytes_used) : bytes_used_(bytes_used) { }
+  TestAllocator() : bytes_used_(nullptr) {}
+  TestAllocator(int64_t *bytes_used) : bytes_used_(bytes_used) {}
 
   // Constructor used for rebinding
   template <class U>
-  TestAllocator(const TestAllocator<U>& x)
-      : Alloc(x),
-        bytes_used_(x.bytes_used()) {
-  }
+  TestAllocator(const TestAllocator<U> &x)
+      : Alloc(x), bytes_used_(x.bytes_used()) {}
 
   pointer allocate(size_type n, std::allocator<void>::const_pointer hint = 0) {
     EXPECT_TRUE(bytes_used_ != nullptr);
@@ -892,11 +860,12 @@ class TestAllocator : public Alloc {
   }
 
   // Rebind allows an allocator<T> to be used for a different type
-  template <class U> struct rebind {
-    using other =  TestAllocator<U, typename Alloc::template rebind<U>::other>;
+  template <class U>
+  struct rebind {
+    using other = TestAllocator<U, typename Alloc::template rebind<U>::other>;
   };
 
-  int64_t* bytes_used() const { return bytes_used_; }
+  int64_t *bytes_used() const { return bytes_used_; }
 
  private:
   int64_t *bytes_used_;
@@ -922,7 +891,6 @@ void BtreeAllocatorTest() {
   EXPECT_LE(b1.bytes_used(), alloc2 + sizeof(b1));
   EXPECT_GT(alloc2, alloc1);
 }
-
 
 template <typename T>
 void BtreeSetTest() {
@@ -961,13 +929,13 @@ void BtreeSetTest() {
   // Emplace_hint
   for (int i = 500; i < 1000; i++) {
     value_type v = Generator<value_type>(1000)(i);
-    auto h = b.find(Generator<value_type>(1000)(i-1));
+    auto h = b.find(Generator<value_type>(1000)(i - 1));
     auto j = b.emplace_hint(h, v);
     EXPECT_EQ(j, b.find(v));
   }
 }
 
-template<typename T>
+template <typename T>
 void BtreeMultiSetTest() {
   using value_type = typename T::value_type;
 
@@ -1002,12 +970,11 @@ void BtreeMultiSetTest() {
   // Emplace_hint
   for (int i = 500; i < 1000; i++) {
     value_type v = Generator<value_type>(1000)(i);
-    auto h = b.find(Generator<value_type>(1000)(i-1));
+    auto h = b.find(Generator<value_type>(1000)(i - 1));
     auto j = b.emplace_hint(h, v);
     EXPECT_EQ(*j, *b.find(v));
   }
 }
-
 
 template <typename T>
 void BtreeMapTest() {
@@ -1015,7 +982,7 @@ void BtreeMapTest() {
   using mapped_type = typename T::mapped_type;
 
   mapped_type m = Generator<mapped_type>(0)(0);
-  (void) m;
+  (void)m;
 
   T b;
 
@@ -1052,7 +1019,7 @@ void BtreeMapTest() {
   // Emplace_hint
   for (int i = 500; i < 1000; i++) {
     value_type v = Generator<value_type>(1000)(i);
-    auto h = b.find(Generator<value_type>(1000)(i-1).first);
+    auto h = b.find(Generator<value_type>(1000)(i - 1).first);
     auto j = b.emplace_hint(h, v.first, v.second);
     EXPECT_EQ(j, b.find(v.first));
   }
@@ -1062,7 +1029,7 @@ template <typename T>
 void BtreeMultiMapTest() {
   using mapped_type = typename T::mapped_type;
   mapped_type m = Generator<mapped_type>(0)(0);
-  (void) m;
+  (void)m;
 }
 
-} // namespace btree
+}  // namespace btree

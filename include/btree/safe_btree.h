@@ -64,30 +64,21 @@ class safe_btree_iterator {
   }
 
  public:
-  safe_btree_iterator()
-      : generation_(0),
-        key_(),
-        iter_(),
-        tree_(nullptr) {
-  }
+  safe_btree_iterator() : generation_(0), key_(), iter_(), tree_(nullptr) {}
   safe_btree_iterator(const iterator &x)
       : generation_(x.generation()),
         key_(x.key()),
         iter_(x.iter()),
-        tree_(x.tree()) {
-  }
+        tree_(x.tree()) {}
   safe_btree_iterator(Tree *tree, const Iterator &iter)
-      : generation_(),
-        key_(),
-        iter_(iter),
-        tree_(tree) {
+      : generation_(), key_(), iter_(iter), tree_(tree) {
     update();
   }
 
-  Tree* tree() const { return tree_; }
+  Tree *tree() const { return tree_; }
   int64_t generation() const { return generation_; }
 
-  Iterator* mutable_iter() const {
+  Iterator *mutable_iter() const {
     if (generation_ != tree_->generation()) {
       if (generation_ > 0) {
         // This does the wrong thing for a multi{set,map}. If my iter was
@@ -103,22 +94,14 @@ class safe_btree_iterator {
     }
     return &iter_;
   }
-  const Iterator& iter() const {
-    return *mutable_iter();
-  }
+  const Iterator &iter() const { return *mutable_iter(); }
 
   // Equality/inequality operators.
-  bool operator==(const const_iterator &x) const {
-    return iter() == x.iter();
-  }
-  bool operator!=(const const_iterator &x) const {
-    return iter() != x.iter();
-  }
+  bool operator==(const const_iterator &x) const { return iter() == x.iter(); }
+  bool operator!=(const const_iterator &x) const { return iter() != x.iter(); }
 
   // Accessors for the key/value the iterator is pointing at.
-  const key_type& key() const {
-    return key_;
-  }
+  const key_type &key() const { return key_; }
   // This reference value is potentially invalidated by any non-const
   // method on the tree; it is NOT safe.
   reference operator*() const {
@@ -133,12 +116,12 @@ class safe_btree_iterator {
   }
 
   // Increment/decrement operators.
-  self_type& operator++() {
+  self_type &operator++() {
     ++(*mutable_iter());
     update();
     return *this;
   }
-  self_type& operator--() {
+  self_type &operator--() {
     --(*mutable_iter());
     update();
     return *this;
@@ -188,48 +171,31 @@ class safe_btree {
   using size_type = typename btree_type::size_type;
   using difference_type = typename btree_type::difference_type;
   using iterator = safe_btree_iterator<self_type, tree_iterator>;
-  using const_iterator = safe_btree_iterator<
-    const self_type, tree_const_iterator>;
-  using const_reverse_iterator =  std::reverse_iterator<const_iterator>;
+  using const_iterator =
+      safe_btree_iterator<const self_type, tree_const_iterator>;
+  using const_reverse_iterator = std::reverse_iterator<const_iterator>;
   using reverse_iterator = std::reverse_iterator<iterator>;
 
  public:
   // Default constructor.
   safe_btree(const key_compare &comp, const allocator_type &alloc)
-      : tree_(comp, alloc) {
-  }
+      : tree_(comp, alloc) {}
 
   // Copy constructor.
-  safe_btree(const self_type &x)
-      : tree_(x.tree_) {
-  }
+  safe_btree(const self_type &x) : tree_(x.tree_) {}
 
-  safe_btree(self_type && x)
-      : tree_(std::move(x.tree_)),
-        generation_(x.generation_+1) {
-  }
+  safe_btree(self_type &&x)
+      : tree_(std::move(x.tree_)), generation_(x.generation_ + 1) {}
 
-  iterator begin() {
-    return iterator(this, tree_.begin());
-  }
-  const_iterator begin() const {
-    return const_iterator(this, tree_.begin());
-  }
-  iterator end() {
-    return iterator(this, tree_.end());
-  }
-  const_iterator end() const {
-    return const_iterator(this, tree_.end());
-  }
-  reverse_iterator rbegin() {
-    return reverse_iterator(end());
-  }
+  iterator begin() { return iterator(this, tree_.begin()); }
+  const_iterator begin() const { return const_iterator(this, tree_.begin()); }
+  iterator end() { return iterator(this, tree_.end()); }
+  const_iterator end() const { return const_iterator(this, tree_.end()); }
+  reverse_iterator rbegin() { return reverse_iterator(end()); }
   const_reverse_iterator rbegin() const {
     return const_reverse_iterator(end());
   }
-  reverse_iterator rend() {
-    return reverse_iterator(begin());
-  }
+  reverse_iterator rend() { return reverse_iterator(begin()); }
   const_reverse_iterator rend() const {
     return const_reverse_iterator(begin());
   }
@@ -249,13 +215,14 @@ class safe_btree {
   }
   std::pair<iterator, iterator> equal_range(const key_type &key) {
     std::pair<tree_iterator, tree_iterator> p = tree_.equal_range(key);
-    return std::make_pair(iterator(this, p.first),
-                     iterator(this, p.second));
+    return std::make_pair(iterator(this, p.first), iterator(this, p.second));
   }
-  std::pair<const_iterator, const_iterator> equal_range(const key_type &key) const {
-    std::pair<tree_const_iterator, tree_const_iterator> p = tree_.equal_range(key);
+  std::pair<const_iterator, const_iterator> equal_range(
+      const key_type &key) const {
+    std::pair<tree_const_iterator, tree_const_iterator> p =
+        tree_.equal_range(key);
     return std::make_pair(const_iterator(this, p.first),
-                     const_iterator(this, p.second));
+                          const_iterator(this, p.second));
   }
   iterator find_unique(const key_type &key) {
     return iterator(this, tree_.find_unique(key));
@@ -278,7 +245,8 @@ class safe_btree {
 
   // Insertion routines.
   template <typename ValuePointer>
-  std::pair<iterator, bool> insert_unique(const key_type &key, ValuePointer value) {
+  std::pair<iterator, bool> insert_unique(const key_type &key,
+                                          ValuePointer value) {
     std::pair<tree_iterator, bool> p = tree_.insert_unique(key, value);
     generation_ += p.second;
     return std::make_pair(iterator(this, p.first), p.second);
@@ -300,18 +268,21 @@ class safe_btree {
     }
   }
 
-  template< typename... args_type >
-  std::pair<iterator,bool> emplace_unique(const key_type &key, args_type&&... args ) {
+  template <typename... args_type>
+  std::pair<iterator, bool> emplace_unique(const key_type &key,
+                                           args_type &&... args) {
     auto p = tree_.emplace_unique(key, std::forward<args_type>(args)...);
     generation_ += p.second;
     return {iterator(this, p.first), p.second};
   }
 
-  template< typename... args_type >
-  iterator emplace_unique_hint(iterator hint, const key_type &key, args_type&&... args ) {
+  template <typename... args_type>
+  iterator emplace_unique_hint(iterator hint, const key_type &key,
+                               args_type &&... args) {
     auto tree_pos = hint.iter();
     ++generation_;
-    return iterator(this, tree_.emplace_unique_hint(tree_pos, key, std::forward<args_type>(args)...));
+    return iterator(this, tree_.emplace_unique_hint(
+                              tree_pos, key, std::forward<args_type>(args)...));
   }
 
   iterator insert_multi(const value_type &v) {
@@ -330,20 +301,23 @@ class safe_btree {
     }
   }
 
-  template< typename... args_type >
-  iterator emplace_multi(const key_type &key, args_type&&... args ) {
+  template <typename... args_type>
+  iterator emplace_multi(const key_type &key, args_type &&... args) {
     ++generation_;
-    return iterator(this, tree_.emplace_multi(key, std::forward<args_type>(args)...));
+    return iterator(this,
+                    tree_.emplace_multi(key, std::forward<args_type>(args)...));
   }
 
-  template< typename... args_type >
-  iterator emplace_multi_hint(iterator hint, const key_type &key, args_type&&... args) {
+  template <typename... args_type>
+  iterator emplace_multi_hint(iterator hint, const key_type &key,
+                              args_type &&... args) {
     auto tree_pos = hint.iter();
     ++generation_;
-    return iterator(this, tree_.emplace_multi_hint(tree_pos, key, std::forward<args_type>(args)...));
+    return iterator(this, tree_.emplace_multi_hint(
+                              tree_pos, key, std::forward<args_type>(args)...));
   }
 
-  self_type& operator=(const self_type &x) {
+  self_type &operator=(const self_type &x) {
     if (&x == this) {
       // Don't copy onto ourselves.
       return *this;
@@ -353,12 +327,12 @@ class safe_btree {
     return *this;
   }
 
-  self_type& operator=(self_type && x) {
+  self_type &operator=(self_type &&x) {
     if (&x == this) {
       return *this;
     }
     tree_ = std::move(x.tree_);
-    generation_ = x.generation_+1;
+    generation_ = x.generation_ + 1;
     return *this;
   }
 
@@ -387,8 +361,8 @@ class safe_btree {
   }
 
   // Access to the underlying btree.
-  btree_type* internal_btree() { return &tree_; }
-  const btree_type* internal_btree() const { return &tree_; }
+  btree_type *internal_btree() { return &tree_; }
+  const btree_type *internal_btree() const { return &tree_; }
 
   // Utility routines.
   void clear() {
@@ -400,15 +374,9 @@ class safe_btree {
     ++x.generation_;
     tree_.swap(x.tree_);
   }
-  void dump(std::ostream &os) const {
-    tree_.dump(os);
-  }
-  void verify() const {
-    tree_.verify();
-  }
-  int64_t generation() const {
-    return generation_;
-  }
+  void dump(std::ostream &os) const { tree_.dump(os); }
+  void verify() const { tree_.verify(); }
+  int64_t generation() const { return generation_; }
   key_compare key_comp() const { return tree_.key_comp(); }
 
   // Size routines.

@@ -40,13 +40,11 @@
 namespace btree {
 
 // The safe_btree_set class is needed mainly for its constructors.
-template <typename Key,
-          typename Compare = std::less<Key>,
-          typename Alloc = std::allocator<Key>,
-          int TargetNodeSize = 256>
-class safe_btree_set : public btree_unique_container<
-  safe_btree<btree_set_params<Key, Compare, Alloc, TargetNodeSize> > > {
-
+template <typename Key, typename Compare = std::less<Key>,
+          typename Alloc = std::allocator<Key>, int TargetNodeSize = 256>
+class safe_btree_set
+    : public btree_unique_container<
+          safe_btree<btree_set_params<Key, Compare, Alloc, TargetNodeSize> > > {
   using self_type = safe_btree_set<Key, Compare, Alloc, TargetNodeSize>;
   using params_type = btree_set_params<Key, Compare, Alloc, TargetNodeSize>;
   using btree_type = safe_btree<params_type>;
@@ -60,38 +58,34 @@ class safe_btree_set : public btree_unique_container<
   // Default constructor.
   safe_btree_set(const key_compare &comp = key_compare(),
                  const allocator_type &alloc = allocator_type())
-      : super_type(comp, alloc) {
-  }
+      : super_type(comp, alloc) {}
 
   // Copy constructor.
   safe_btree_set(const self_type &x) = default;
 
-  safe_btree_set(self_type && x) = default;
+  safe_btree_set(self_type &&x) = default;
 
   // Range constructor.
   template <class InputIterator>
   safe_btree_set(InputIterator b, InputIterator e,
                  const key_compare &comp = key_compare(),
                  const allocator_type &alloc = allocator_type())
-      : super_type(b, e, comp, alloc) {
-  }
+      : super_type(b, e, comp, alloc) {}
 
   safe_btree_set(std::initializer_list<typename btree_type::value_type> l,
-            const key_compare & comp = key_compare(),
-            const allocator_type & alloc = allocator_type())
-      : super_type(l, comp, alloc) {
-  }
+                 const key_compare &comp = key_compare(),
+                 const allocator_type &alloc = allocator_type())
+      : super_type(l, comp, alloc) {}
 
-  self_type & operator=(const self_type & x) = default;
-  self_type & operator=(self_type && x) = default;
+  self_type &operator=(const self_type &x) = default;
+  self_type &operator=(self_type &&x) = default;
 };
 
 template <typename K, typename C, typename A, int N>
-inline void swap(safe_btree_set<K, C, A, N> &x,
-                 safe_btree_set<K, C, A, N> &y) {
+inline void swap(safe_btree_set<K, C, A, N> &x, safe_btree_set<K, C, A, N> &y) {
   x.swap(y);
 }
 
-} // namespace btree
+}  // namespace btree
 
 #endif  // UTIL_BTREE_SAFE_BTREE_SET_H__
