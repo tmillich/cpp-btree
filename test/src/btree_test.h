@@ -555,9 +555,13 @@ void DoTest(const char *name, T *b, const std::vector<V> &values) {
   EXPECT_EQ(mutable_b.size(), values.size());
 
   const_b.verify();
-  printf("    %s fullness=%0.2f  overhead=%0.2f  bytes-per-value=%0.2f\n", name,
-         const_b.fullness(), const_b.overhead(),
-         double(const_b.bytes_used()) / const_b.size());
+  printf("%s;%s;%0.2f;%0.2f;%0.2f;%0.2f;%0.2f;%0.2f;%0.2f;%0.2f\n",
+         ::testing::UnitTest::GetInstance()->current_test_info()->name(), name, const_b.fullness(), const_b.overhead(),
+         double(const_b.bytes_used()) / const_b.size(), double(const_b.size()), double(const_b.bytes_used()),
+         double(const_b.height()), double(const_b.internal_nodes()), double(const_b.leaf_nodes()));
+
+
+
 
   // Test copy constructor.
   T b_copy(const_b);
@@ -782,14 +786,14 @@ void BtreeTest() {
   // Test key insertion/deletion in sorted order.
   std::vector<V> sorted_values(random_values);
   sort(sorted_values.begin(), sorted_values.end());
-  DoTest("sorted:    ", &container, sorted_values);
+  DoTest("sorted", &container, sorted_values);
 
   // Test key insertion/deletion in reverse sorted order.
   reverse(sorted_values.begin(), sorted_values.end());
-  DoTest("rsorted:   ", &container, sorted_values);
+  DoTest("rsorted", &container, sorted_values);
 
   // Test key insertion/deletion in random order.
-  DoTest("random:    ", &container, random_values);
+  DoTest("random", &container, random_values);
 
   // initializer list
   T t2{random_values[0], random_values[1]};
@@ -808,25 +812,25 @@ void BtreeMultiTest() {
   // Test keys in sorted order.
   std::vector<V> sorted_values(random_values);
   sort(sorted_values.begin(), sorted_values.end());
-  DoTest("sorted:    ", &container, sorted_values);
+  DoTest("sorted", &container, sorted_values);
 
   // Test keys in reverse sorted order.
   reverse(sorted_values.begin(), sorted_values.end());
-  DoTest("rsorted:   ", &container, sorted_values);
+  DoTest("rsorted", &container, sorted_values);
 
   // Test keys in random order.
-  DoTest("random:    ", &container, random_values);
+  DoTest("random", &container, random_values);
 
   // Test keys in random order w/ duplicates.
   std::vector<V> duplicate_values(random_values);
   duplicate_values.insert(duplicate_values.end(), random_values.begin(),
                           random_values.end());
-  DoTest("duplicates:", &container, duplicate_values);
+  DoTest("duplicates", &container, duplicate_values);
 
   // Test all identical keys.
   std::vector<V> identical_values(100);
   fill(identical_values.begin(), identical_values.end(), Generator<V>(2)(2));
-  DoTest("identical: ", &container, identical_values);
+  DoTest("identical", &container, identical_values);
 
   // initializer list
   T t2{random_values[0], random_values[1]};
