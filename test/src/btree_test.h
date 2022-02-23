@@ -24,6 +24,7 @@
 #include <type_traits>
 #include <utility>
 #include <vector>
+#include <chrono>
 
 #include "btree/btree_container.h"
 #include "gflags/gflags.h"
@@ -546,19 +547,25 @@ void DoTest(const char *name, T *b, const std::vector<V> &values) {
   T &mutable_b = *b;
   const T &const_b = *b;
 
+  std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
   // Test insert.
   for (size_t i = 0; i < values.size(); ++i) {
     mutable_b.insert(values[i]);
     EXPECT_EQ(mutable_b.size(), i + 1);
     mutable_b.value_check(values[i]);
   }
+  std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+  auto time_diff = std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count();
+  double time_per_value = double(time_diff) / const_b.size();
+
   EXPECT_EQ(mutable_b.size(), values.size());
 
   const_b.verify();
-  printf("%s;%s;%0.2f;%0.2f;%0.2f;%0.2f;%0.2f;%0.2f;%0.2f;%0.2f\n",
+  // test;name;fullness;overhead;bytes-per-value;size;bytes_used;height;internal_nodes;leaf_nodes;duration[ns];time-per-value[ns]
+  printf("%s;%s;%0.2f;%0.2f;%0.2f;%0.2f;%0.2f;%0.2f;%0.2f;%0.2f;%0.2f;%0.20f\n",
          ::testing::UnitTest::GetInstance()->current_test_info()->name(), name, const_b.fullness(), const_b.overhead(),
          double(const_b.bytes_used()) / const_b.size(), double(const_b.size()), double(const_b.bytes_used()),
-         double(const_b.height()), double(const_b.internal_nodes()), double(const_b.leaf_nodes()));
+         double(const_b.height()), double(const_b.internal_nodes()), double(const_b.leaf_nodes()), double(time_diff), time_per_value);
 
 
 
